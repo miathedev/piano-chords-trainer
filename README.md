@@ -1,4 +1,4 @@
-# Piano Chords Trainer 🎹
+# Piano Chords Trainer
 
 **[Play Live Here!](https://miathedev.github.io/piano-chords-trainer/)**
 
@@ -6,16 +6,16 @@ A modern, interactive web application designed to help you learn and practice pi
 
 ![App Demo](public/favicon.svg) <!-- Replace with an actual screenshot path later if desired -->
 
-## ✨ Features
+## Features
 
-- **🔌 Real-Time Web MIDI Integration:** Plug in your physical MIDI piano/keyboard. The app detects your key presses instantly and accurately normalizes them to check if you're playing the correct pitch classes, regardless of the inversion you choose.
-- **🎵 High-Quality Audio Synthesis:** Hear what you play! Integrated with **Tone.js** and the Salamander Grand Piano samples, the app synthesizes a beautiful, expressive piano sound directly in your browser.
-- **📚 Built-In Theory Guide:** Stuck? The app includes a handy modal that explains the music theory behind Major, Minor, Diminished, and Augmented chords, complete with easy memorization tricks.
-- **💡 Visual Solution Keyboard:** If you don't know the chord, click "Show Solution" to see the exact keys you need to press light up on an on-screen, 2-octave piano keyboard.
-- **🏆 Competitive High Score System:** Hold a correct chord for 1 second to score a point. Try to beat your personal best—your high score is saved locally via cookies!
-- **🎨 Premium UI/UX:** A sleek, responsive dark mode design with glassmorphism effects, dynamic progress bars, and CSS micro-animations.
+- **Real-Time Web MIDI Integration:** Plug in your physical MIDI piano/keyboard. The app detects your key presses instantly and accurately normalizes them to check if you're playing the correct pitch classes, regardless of the inversion you choose.
+- **High-Quality Audio Synthesis:** Hear what you play! Integrated with **Tone.js** and the Salamander Grand Piano samples, the app synthesizes a beautiful, expressive piano sound directly in your browser.
+- **Built-In Theory Guide:** Stuck? The app includes a handy modal that explains the music theory behind Major, Minor, Diminished, and Augmented chords, complete with easy memorization tricks.
+- **Visual Solution Keyboard:** If you don't know the chord, click "Show Solution" to see the exact keys you need to press light up on an on-screen, 2-octave piano keyboard.
+- **Competitive High Score System:** Hold a correct chord for 1 second to score a point. Try to beat your personal best—your high score is saved locally via cookies!
+- **Premium UI/UX:** A sleek, responsive dark mode design with glassmorphism effects, dynamic progress bars, and CSS micro-animations.
 
-## 🚀 Getting Started Locally
+## Getting Started Locally
 
 ### Prerequisites
 - Node.js (v18+)
