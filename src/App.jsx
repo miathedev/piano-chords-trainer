@@ -7,10 +7,11 @@ import { Guide } from './Guide';
 import './index.css';
 
 function App() {
-  const ALL_TYPES = ['Major', 'Minor', 'Diminished', 'Augmented'];
+  const ALL_TYPES = ['Major', 'Minor', 'Diminished', 'Augmented', 'Power'];
   const [allowedTypes, setAllowedTypes] = useState(ALL_TYPES);
+  const [includePowerOctave, setIncludePowerOctave] = useState(false);
   const [midiAccess, setMidiAccess] = useState(null);
-  const [targetChord, setTargetChord] = useState(() => getRandomChord(ALL_TYPES));
+  const [targetChord, setTargetChord] = useState(() => getRandomChord(ALL_TYPES, false));
   const [activeNotes, setActiveNotes] = useState(new Set());
   const [score, setScore] = useState(0);
   const [highScore, setHighScoreState] = useState(getHighScore());
@@ -21,6 +22,7 @@ function App() {
   const [gameState, setGameState] = useState('menu');
 
   const allowedTypesRef = useRef(allowedTypes);
+  const includePowerOctaveRef = useRef(includePowerOctave);
   const activeNotesRef = useRef(activeNotes);
   const targetChordRef = useRef(targetChord);
   const timerRef = useRef(null);
@@ -31,15 +33,19 @@ function App() {
     allowedTypesRef.current = allowedTypes;
   }, [allowedTypes]);
 
+  useEffect(() => {
+    includePowerOctaveRef.current = includePowerOctave;
+  }, [includePowerOctave]);
+
   // If the current chord is no longer allowed, get a new one
   useEffect(() => {
-    if (!allowedTypes.includes(targetChord.type)) {
-      const nextChord = getRandomChord(allowedTypes);
+    if (!allowedTypes.includes(targetChord.type) || (targetChord.type === 'Power' && targetChord.withOctave !== includePowerOctave)) {
+      const nextChord = getRandomChord(allowedTypes, includePowerOctave);
       setTargetChord(nextChord);
       setProgress(0);
       setShowSolution(false);
     }
-  }, [allowedTypes, targetChord.type]);
+  }, [allowedTypes, includePowerOctave, targetChord.type, targetChord.withOctave]);
 
   useEffect(() => {
     activeNotesRef.current = activeNotes;
@@ -130,14 +136,14 @@ function App() {
     setTimeout(() => {
       setProgress(0);
       setShowSolution(false);
-      const nextChord = getRandomChord(allowedTypesRef.current);
+      const nextChord = getRandomChord(allowedTypesRef.current, includePowerOctaveRef.current);
       setTargetChord(nextChord);
-      playChord(nextChord.pitchClasses, nextChord.root);
+      playChord(nextChord.pitchClasses, nextChord.root, nextChord.withOctave);
     }, 200); // small delay to see full bar
   };
 
   useEffect(() => {
-    const isMatch = checkChordMatch(activeNotes, targetChord.pitchClasses);
+    const isMatch = checkChordMatch(activeNotes, targetChord);
     
     if (isMatch && !timerRef.current) {
       // Start timer
@@ -164,7 +170,7 @@ function App() {
             <h1>Piano Chords Trainer</h1>
             <p className="subtitle">Select the chord types you want to practice:</p>
             <div className="chord-types-toggle">
-                {['Major', 'Minor', 'Diminished', 'Augmented'].map(t => (
+                {['Major', 'Minor', 'Diminished', 'Augmented', 'Power'].map(t => (
                   <button
                     key={t}
                     className={`type-toggle ${allowedTypes.includes(t) ? 'active' : ''}`}
@@ -182,6 +188,19 @@ function App() {
                   </button>
                 ))}
             </div>
+            
+            {allowedTypes.includes('Power') && (
+              <div className="octave-toggle-container">
+                <label className="octave-toggle-label">
+                  <input 
+                    type="checkbox" 
+                    checked={includePowerOctave}
+                    onChange={(e) => setIncludePowerOctave(e.target.checked)}
+                  />
+                  <span>Require Octave for Power Chords</span>
+                </label>
+              </div>
+            )}
             {error ? (
               <div className="error">{error}</div>
             ) : (
@@ -190,9 +209,9 @@ function App() {
                 onClick={() => {
                   setScore(0);
                   startAudioContext().then(() => {
-                    const nextChord = getRandomChord(allowedTypes);
+                    const nextChord = getRandomChord(allowedTypes, includePowerOctave);
                     setTargetChord(nextChord);
-                    playChord(nextChord.pitchClasses, nextChord.root);
+                    playChord(nextChord.pitchClasses, nextChord.root, nextChord.withOctave);
                   });
                   setGameState('playing');
                 }}
@@ -241,7 +260,7 @@ function App() {
                       className="play-btn"
                       onClick={() => {
                         startAudioContext().then(() => {
-                          playChord(targetChord.pitchClasses, targetChord.root);
+                          playChord(targetChord.pitchClasses, targetChord.root, targetChord.withOctave);
                         });
                       }}
                     >

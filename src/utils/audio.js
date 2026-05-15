@@ -78,7 +78,7 @@ export function playNoteOff(midiNote) {
   synth.triggerRelease(freq);
 }
 
-export function playChord(pitchClasses, rootName) {
+export function playChord(pitchClasses, rootName, withOctave = false) {
   if (!isAudioStarted || !synth || !isSynthLoaded) return;
   
   const roots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -107,6 +107,10 @@ export function playChord(pitchClasses, rootName) {
       note += 12;
     }
     notes.push(note);
+  }
+  
+  if (withOctave) {
+    notes.push(currentNote + 12);
   }
   
   const freqs = notes.map(n => Tone.Frequency(n, "midi").toFrequency());

@@ -10,16 +10,17 @@ const OCTAVE = [
   { pc: 11, hasBlack: false } // B
 ];
 
-const getRootPositionIndices = (pitchClasses, rootName) => {
+const getRootPositionIndices = (targetChord) => {
   const roots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const rootPc = roots.indexOf(rootName);
+  const rootPc = roots.indexOf(targetChord.root);
   
-  let sortedPcs = Array.from(pitchClasses).sort((a, b) => a - b);
+  let sortedPcs = Array.from(targetChord.pitchClasses).sort((a, b) => a - b);
   while (sortedPcs[0] !== rootPc) {
     sortedPcs.push(sortedPcs.shift());
   }
   
   let indices = new Set();
+  let rootOffset = rootPc;
   let currentOffset = rootPc;
   indices.add(currentOffset);
   
@@ -33,11 +34,16 @@ const getRootPositionIndices = (pitchClasses, rootName) => {
     currentOffset = offset;
     indices.add(offset);
   }
+
+  if (targetChord.withOctave) {
+    indices.add(rootOffset + 12);
+  }
+
   return indices;
 };
 
 export function Keyboard({ targetChord }) {
-  const activeIndices = getRootPositionIndices(targetChord.pitchClasses, targetChord.root);
+  const activeIndices = getRootPositionIndices(targetChord);
 
   const renderKeys = () => {
     let currentNoteIndex = 0;
