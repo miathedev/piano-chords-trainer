@@ -7,8 +7,10 @@ import { Guide } from './Guide';
 import './index.css';
 
 function App() {
+  const ALL_TYPES = ['Major', 'Minor', 'Diminished', 'Augmented'];
+  const [allowedTypes, setAllowedTypes] = useState(ALL_TYPES);
   const [midiAccess, setMidiAccess] = useState(null);
-  const [targetChord, setTargetChord] = useState(getRandomChord());
+  const [targetChord, setTargetChord] = useState(() => getRandomChord(ALL_TYPES));
   const [activeNotes, setActiveNotes] = useState(new Set());
   const [score, setScore] = useState(0);
   const [highScore, setHighScoreState] = useState(getHighScore());
@@ -16,12 +18,28 @@ function App() {
   const [error, setError] = useState(null);
   const [showSolution, setShowSolution] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [gameState, setGameState] = useState('menu');
 
+  const allowedTypesRef = useRef(allowedTypes);
   const activeNotesRef = useRef(activeNotes);
   const targetChordRef = useRef(targetChord);
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
   const requestRef = useRef(null);
+
+  useEffect(() => {
+    allowedTypesRef.current = allowedTypes;
+  }, [allowedTypes]);
+
+  // If the current chord is no longer allowed, get a new one
+  useEffect(() => {
+    if (!allowedTypes.includes(targetChord.type)) {
+      const nextChord = getRandomChord(allowedTypes);
+      setTargetChord(nextChord);
+      setProgress(0);
+      setShowSolution(false);
+    }
+  }, [allowedTypes, targetChord.type]);
 
   useEffect(() => {
     activeNotesRef.current = activeNotes;
@@ -112,7 +130,7 @@ function App() {
     setTimeout(() => {
       setProgress(0);
       setShowSolution(false);
-      const nextChord = getRandomChord();
+      const nextChord = getRandomChord(allowedTypesRef.current);
       setTargetChord(nextChord);
       playChord(nextChord.pitchClasses, nextChord.root);
     }, 200); // small delay to see full bar
@@ -141,78 +159,132 @@ function App() {
   return (
     <>
       <div className="app-container">
-        <header>
-          <div className="score-board">
-            <div className="score-item">
-              <span className="label">Score</span>
-              <span className="value">{score}</span>
+        {gameState === 'menu' ? (
+          <div className="menu-screen">
+            <h1>Piano Chords Trainer</h1>
+            <p className="subtitle">Select the chord types you want to practice:</p>
+            <div className="chord-types-toggle">
+                {['Major', 'Minor', 'Diminished', 'Augmented'].map(t => (
+                  <button
+                    key={t}
+                    className={`type-toggle ${allowedTypes.includes(t) ? 'active' : ''}`}
+                    onClick={() => {
+                      setAllowedTypes(prev => {
+                        if (prev.includes(t)) {
+                          return prev.length > 1 ? prev.filter(x => x !== t) : prev;
+                        } else {
+                          return [...prev, t];
+                        }
+                      });
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
             </div>
-            <div className="score-item">
-              <span className="label">High Score</span>
-              <span className="value">{highScore}</span>
-            </div>
+            {error ? (
+              <div className="error">{error}</div>
+            ) : (
+              <button 
+                className="start-game-btn"
+                onClick={() => {
+                  setScore(0);
+                  startAudioContext().then(() => {
+                    const nextChord = getRandomChord(allowedTypes);
+                    setTargetChord(nextChord);
+                    playChord(nextChord.pitchClasses, nextChord.root);
+                  });
+                  setGameState('playing');
+                }}
+              >
+                Start Practice
+              </button>
+            )}
+            {midiAccess ? (
+              <div className="status connected" style={{marginTop: '2rem'}}>MIDI Connected</div>
+            ) : (
+              <div className="status disconnected" style={{marginTop: '2rem'}}>Waiting for MIDI...</div>
+            )}
           </div>
-          {midiAccess ? (
-            <div className="status connected">MIDI Connected</div>
-          ) : (
-            <div className="status disconnected">Waiting for MIDI...</div>
-          )}
-        </header>
-
-        <main>
-          {error ? (
-            <div className="error">{error}</div>
-          ) : (
-            <div className="chord-display">
-              <h2>Play the chord:</h2>
-              <div className="target-chord">{targetChord.name}</div>
-              <div className="button-group">
-                <button 
-                  className="play-btn"
-                  onClick={() => {
-                    startAudioContext().then(() => {
-                      playChord(targetChord.pitchClasses, targetChord.root);
-                    });
-                  }}
-                >
-                  Hear Chord
-                </button>
-                <button 
-                  className="solution-btn"
-                  onClick={() => setShowSolution(true)}
-                >
-                  Show Solution
-                </button>
-                <button 
-                  className="guide-btn"
-                  onClick={() => setShowGuide(true)}
-                >
-                  Theory Guide
-                </button>
+        ) : (
+          <div className="game-screen">
+            <header>
+              <div className="score-board">
+                <div className="score-item">
+                  <span className="label">Score</span>
+                  <span className="value">{score}</span>
+                </div>
+                <div className="score-item">
+                  <span className="label">High Score</span>
+                  <span className="value">{highScore}</span>
+                </div>
               </div>
+              <div className="header-controls">
+                <button className="quit-btn" onClick={() => setGameState('menu')}>Back to Menu</button>
+                {midiAccess ? (
+                  <div className="status connected">MIDI Connected</div>
+                ) : (
+                  <div className="status disconnected">Waiting for MIDI...</div>
+                )}
+              </div>
+            </header>
 
-              {showSolution && (
-                <div className="solution-text">
-                  <Keyboard targetChord={targetChord} />
+            <main>
+              {error ? (
+                <div className="error">{error}</div>
+              ) : (
+                <div className="chord-display">
+                  <h2>Play the chord:</h2>
+                  <div className="target-chord">{targetChord.name}</div>
+                  <div className="button-group">
+                    <button 
+                      className="play-btn"
+                      onClick={() => {
+                        startAudioContext().then(() => {
+                          playChord(targetChord.pitchClasses, targetChord.root);
+                        });
+                      }}
+                    >
+                      Hear Chord
+                    </button>
+                    <button 
+                      className="solution-btn"
+                      onClick={() => setShowSolution(true)}
+                    >
+                      Show Solution
+                    </button>
+                    <button 
+                      className="guide-btn"
+                      onClick={() => setShowGuide(true)}
+                    >
+                      Theory Guide
+                    </button>
+                  </div>
+
+                  {showSolution && (
+                    <div className="solution-text">
+                      <Keyboard targetChord={targetChord} />
+                    </div>
+                  )}
+                  
+                  <div className="progress-container">
+                    <div 
+                      className={`progress-bar ${progress === 100 ? 'success' : ''}`} 
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
                 </div>
               )}
-              
-              <div className="progress-container">
-                <div 
-                  className={`progress-bar ${progress === 100 ? 'success' : ''}`} 
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-        </main>
+            </main>
 
-        <footer>
-          <p>Hold the chord for 1 second to score.</p>
-          <div className="active-notes">
-            Active Notes: {activeNoteNames.length > 0 ? activeNoteNames.join(', ') : 'None'}
+            <footer>
+              <p>Hold the chord for 1 second to score.</p>
+              <div className="active-notes">
+                Active Notes: {activeNoteNames.length > 0 ? activeNoteNames.join(', ') : 'None'}
+              </div>
+            </footer>
           </div>
-        </footer>
+        )}
       </div>
       {showGuide && <Guide onClose={() => setShowGuide(false)} />}
     </>

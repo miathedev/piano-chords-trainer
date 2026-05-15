@@ -7,11 +7,14 @@ export const CHORD_TYPES = {
   Augmented: [0, 4, 8],
 };
 
-// Generates a random chord prompt
-export function getRandomChord() {
+// Generates a random chord prompt from allowed types
+export function getRandomChord(allowedTypes = ['Major', 'Minor', 'Diminished', 'Augmented']) {
+  if (!allowedTypes || allowedTypes.length === 0) {
+    allowedTypes = ['Major']; // Fallback if all are unselected
+  }
+  
   const rootIdx = Math.floor(Math.random() * ROOT_NOTES.length);
-  const types = Object.keys(CHORD_TYPES);
-  const type = types[Math.floor(Math.random() * types.length)];
+  const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
   
   const rootName = ROOT_NOTES[rootIdx];
   const intervals = CHORD_TYPES[type];
