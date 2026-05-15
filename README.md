@@ -42,13 +42,13 @@ A modern, interactive web application designed to help you learn and practice pi
 
 4. Open `http://localhost:5173` in your browser. Plug in your keyboard, and start playing!
 
-## 🛠️ Built With
+## Built With
 
 - **[React](https://react.dev/)** - Frontend UI library
 - **[Vite](https://vitejs.dev/)** - Next Generation Frontend Tooling
 - **[Tone.js](https://tonejs.github.io/)** - Web Audio Framework for interactive music
 - **Vanilla CSS** - Custom styling and animations
 
-## 📄 License
+## License
 
 This project is open-source and available under the MIT License.
